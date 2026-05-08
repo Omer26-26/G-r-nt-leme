@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./Goruntu_Isleme_Odev-main"
+    ]
+}

@@ -5,6 +5,7 @@ import tkinter.messagebox as mb
 import numpy as np
 import threading
 import traceback
+from Processor import ImageProcessor
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -285,81 +286,43 @@ class App(ctk.CTk):
 
     def _run_filter(self, choice):
         try:
+            # İşlem yapılacak matris (Kopya üzerinden çalışıyoruz)
             mat = self.current_image_matrix.copy()
             result = None
 
-            # TODO: Algoritmaları buraya yaz
-            if "Gri Seviye" in choice:
-                pass  # result = ...
+            # --- ALGORİTMA EŞLEŞTİRMELERİ ---
 
-            elif "Thresholding" in choice:
-                pass  # result = ...
+            if "1. Gri Seviye" in choice:
+                result = ImageProcessor.turn_gray(mat)
 
-            elif "Kontrast" in choice:
-                pass  # result = ...
+            elif "2. Thresholding" in choice:
+                # Eşik değerini istersen bir input field'dan alabilirsin
+                result = ImageProcessor.turn_binary(mat, threshold=127)
 
-            elif "Histogram Germe" in choice:
-                pass  # result = ...
+            elif "4. Histogram Germe" in choice:
+                result = ImageProcessor.stretch_histogram_manual(mat)
 
-            elif "Histogram Eşitleme" in choice:
-                pass  # result = ...
+            elif "6. Histogram Görüntüle" in choice:
+                # Görüntüyü değiştirmeden grafik penceresini açar
+                hist = ImageProcessor.get_histogram(mat)
+                self.after(0, lambda: self._show_histogram(hist))
+                self.after(0, lambda: self._finish_filter("Histogram oluşturuldu ✓"))
+                return # Matrisi güncelleme, sadece grafiği göster
 
-            elif "Histogram Görüntüle" in choice:
-                self.after(0, lambda: self._finish_filter("Histogram (TODO)"))
+            elif "7. RGB → HSV" in choice:
+                result = ImageProcessor.rgb_to_hsv_manual(mat)
+
+            elif "10. Zoom (1.5x)" in choice:
+                result = ImageProcessor.resize_manual(mat, 1.5)
+
+            # --- DİĞER İŞLEMLER ---
+            # Henüz Processor sınıfında olmayanlar için bir uyarı veya pass
+            else:
+                self.after(0, lambda: mb.showinfo("Bilgi", f"{choice} henüz Processor'a eklenmedi."))
+                self.after(0, lambda: self._finish_filter("İşlem tamamlanamadı"))
                 return
 
-            elif "HSV" in choice:
-                pass  # result = ...
-
-            elif "YCbCr" in choice:
-                pass  # result = ...
-
-            elif "Döndür" in choice:
-                pass  # result = ...
-
-            elif "Zoom" in choice:
-                pass  # result = ...
-
-            elif "Salt" in choice:
-                pass  # result = ...
-
-            elif "Mean" in choice:
-                pass  # result = ...
-
-            elif "Median" in choice:
-                pass  # result = ...
-
-            elif "Motion" in choice:
-                pass  # result = ...
-
-            elif "Sobel" in choice:
-                pass  # result = ...
-
-            elif "Canny" in choice:
-                pass  # result = ...
-
-            elif "Erosion" in choice:
-                pass  # result = ...
-
-            elif "Dilation" in choice:
-                pass  # result = ...
-
-            elif "Opening" in choice:
-                pass  # result = ...
-
-            elif "Closing" in choice:
-                pass  # result = ...
-
-            elif "Toplama" in choice or "Çıkarma" in choice or "AND" in choice or "OR" in choice or "XOR" in choice:
-                if self.second_image_matrix is None:
-                    self.after(0, lambda: mb.showwarning("Uyarı", "Önce '2. Resim Yükle' butonuyla\nikinci bir görüntü seçin!"))
-                    self.after(0, lambda: self._finish_filter("2. resim gerekli"))
-                    return
-                pass  # result = ...
-
-            elif "PLAKA" in choice:
-                pass  # result = ...
-
+            # Sonucu ana matrise aktar ve veri tipini koru
             if result is not None:
                 if result.dtype != np.uint8:
                     result = np.clip(result, 0, 255).astype(np.uint8)
@@ -368,8 +331,8 @@ class App(ctk.CTk):
             self.after(0, lambda: self._finish_filter(f"{choice} uygulandı ✓"))
 
         except Exception as e:
-            err_msg = f"Filtre hatası: {e}\n{traceback.format_exc()}"
-            print(err_msg)
+            err_msg = f"Filtre hatası: {e}"
+            print(traceback.format_exc())
             self.after(0, lambda: mb.showerror("İşlem Hatası", str(e)))
             self.after(0, lambda: self._finish_filter("Hata!"))
 
