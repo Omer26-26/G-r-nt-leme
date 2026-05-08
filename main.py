@@ -88,7 +88,8 @@ class App(ctk.CTk):
             "23. Aritmetik: AND",
             "24. Aritmetik: OR",
             "25. Aritmetik: XOR",
-            "26. PLAKA OKUMA (LPR)"
+            "26. PLAKA OKUMA (LPR)",
+            "27. Adaptif Eşikleme"
         ], width=200)
         self.filter_option.pack(padx=20, pady=5, fill="x")
 
@@ -314,6 +315,33 @@ class App(ctk.CTk):
 
             elif "10. Zoom (1.5x)" in choice:
                 result = ImageProcessor.resize_manual(mat, 1.5)
+
+            elif "11. Salt & Pepper" in choice:
+                result = ImageProcessor.add_salt_pepper_noise_manual(mat, amount=0.05)
+
+            elif "12. Mean Filtre" in choice:
+                result = ImageProcessor.mean_filter_manual(mat, kernel_size=3)
+
+            elif "13. Median Filtre" in choice:
+                result = ImageProcessor.median_filter_manual(mat, kernel_size=3)
+
+            elif "15. Sobel Edge" in choice:
+                result = ImageProcessor.sobel_edge_manual(mat)
+
+            elif "17. Morph Erosion" in choice:
+                result = ImageProcessor.turn_erode(mat, kernel_size=3)
+
+            elif "18. Morph Dilation" in choice:
+                result = ImageProcessor.turn_dilate(mat, kernel_size=3)
+
+            elif "19. Morph Opening" in choice:
+                result = ImageProcessor.turn_opening(mat, kernel_size=3)
+
+            elif "20. Morph Closing" in choice:
+                result = ImageProcessor.turn_closing(mat, kernel_size=3)
+
+            elif "27. Adaptif Eşikleme" in choice:
+                result = ImageProcessor.adaptive_threshold_manual(mat, block_size=15, C=5)
 
             # --- DİĞER İŞLEMLER ---
             # Henüz Processor sınıfında olmayanlar için bir uyarı veya pass
