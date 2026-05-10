@@ -63,32 +63,27 @@ class App(ctk.CTk):
                      font=ctk.CTkFont(size=13)).pack(padx=20, pady=(20, 5))
 
         self.filter_option = ctk.CTkComboBox(self.sidebar_frame, values=[
-            "1. Gri Seviye",
-            "2. Thresholding (Eşikleme)",
-            "3. Kontrast Ayarı",
-            "4. Histogram Germe",
-            "5. Histogram Eşitleme",
-            "6. Histogram Görüntüle",
-            "7. RGB → HSV Dönüşümü",
-            "8. RGB → YCbCr Dönüşümü",
-            "9. Döndür (30°)",
-            "10. Zoom (1.5x)",
-            "11. Salt & Pepper Gürültüsü",
-            "12. Mean Filtre",
-            "13. Median Filtre",
-            "14. Motion Blur",
-            "15. Sobel Edge",
-            "16. Canny (Sobel+Eşik)",
-            "17. Morph Erosion (Aşınma)",
-            "18. Morph Dilation (Genişleme)",
-            "19. Morph Opening (Açma)",
-            "20. Morph Closing (Kapama)",
-            "21. Aritmetik: Toplama",
-            "22. Aritmetik: Çıkarma",
-            "23. Aritmetik: AND",
-            "24. Aritmetik: OR",
-            "25. Aritmetik: XOR",
-            "26. PLAKA OKUMA (LPR)"
+            "1. Gri Dönüşüm",
+            "2. Binary Dönüşüm",
+            "3. Görüntü Döndürme",
+            "4. Görüntü Kırpma",
+            "5. Görüntü Yaklaştırma/Uzaklaştırma",
+            "6. Renk Uzayı: HSV",
+            "6. Renk Uzayı: YCbCr",
+            "7. Histogram ve Histogram Germe",
+            "8. Aritmetik: Çıkarma",
+            "8. Aritmetik: Çarpma",
+            "9. Kontrast Azaltma",
+            "10. Konvolüsyon İşlemi (Median)",
+            "11. Eşikleme İşlemleri (Çift Eşikleme)",
+            "12. Kenar Bulma (Sobel/Canny)",
+            "13. Gürültü: Salt&Pepper Ekle",
+            "13. Gürültü: Temizleme (Median)",
+            "14. Görüntü Filtresi (Motion)",
+            "15. Morfolojik: Aşınma (Erosion)",
+            "15. Morfolojik: Genişleme (Dilation)",
+            "15. Morfolojik: Açma (Opening)",
+            "15. Morfolojik: Kapama (Closing)"
         ], width=200)
         self.filter_option.pack(padx=20, pady=5, fill="x")
 
@@ -292,28 +287,74 @@ class App(ctk.CTk):
 
             # --- ALGORİTMA EŞLEŞTİRMELERİ ---
 
-            if "1. Gri Seviye" in choice:
+            if "1. Gri Dönüşüm" in choice:
                 result = ImageProcessor.turn_gray(mat)
 
-            elif "2. Thresholding" in choice:
-                # Eşik değerini istersen bir input field'dan alabilirsin
-                result = ImageProcessor.turn_binary(mat, threshold=127)
+            elif "2. Binary Dönüşüm" in choice:
+                result = ImageProcessor.turn_binary(mat)
 
-            elif "4. Histogram Germe" in choice:
+            elif "3. Görüntü Döndürme" in choice:
+                result = ImageProcessor.rotation_image(mat)
+
+            elif "4. Görüntü Kırpma" in choice:
+                # Örnek: Resmin ortasından 200x200 kırpma
+                h, w = mat.shape[:2]
+                cw, ch = 200, 200
+                x = max(0, (w - cw) // 2)
+                y = max(0, (h - ch) // 2)
+                result = ImageProcessor.crop_image(mat, x, y, cw, ch)
+
+            elif "5. Görüntü Yaklaştırma/Uzaklaştırma" in choice:
+                result = ImageProcessor.resize_manual(mat, 1.5)
+
+            elif "6. Renk Uzayı" in choice:
+                if "HSV" in choice:
+                    result = ImageProcessor.rgb_to_hsv_manual(mat)
+                else:
+                    result = ImageProcessor.rgb_to_ycbcr_manual(mat)
+
+            elif "7. Histogram ve Histogram Germe" in choice:
                 result = ImageProcessor.stretch_histogram_manual(mat)
 
-            elif "6. Histogram Görüntüle" in choice:
-                # Görüntüyü değiştirmeden grafik penceresini açar
-                hist = ImageProcessor.get_histogram(mat)
-                self.after(0, lambda: self._show_histogram(hist))
-                self.after(0, lambda: self._finish_filter("Histogram oluşturuldu ✓"))
-                return # Matrisi güncelleme, sadece grafiği göster
+            elif "8. Aritmetik" in choice:
+                if self.second_image_matrix is None:
+                    self.after(0, lambda: mb.showwarning("Uyarı", "Aritmetik işlem için 2. resmi yüklemelisiniz!"))
+                    return
+                if "Çarpma" in choice:
+                    result = ImageProcessor.multiply_images_manual(mat, self.second_image_matrix)
+                else:
+                    result = ImageProcessor.subtract_images_manual(mat, self.second_image_matrix)
 
-            elif "7. RGB → HSV" in choice:
-                result = ImageProcessor.rgb_to_hsv_manual(mat)
+            elif "9. Kontrast Azaltma" in choice:
+                result = ImageProcessor.adjust_contrast_manual(mat, factor=0.5)
 
-            elif "10. Zoom (1.5x)" in choice:
-                result = ImageProcessor.resize_manual(mat, 1.5)
+            elif "10. Konvolüsyon İşlemi (Median)" in choice:
+                result = ImageProcessor.median_filter_manual(mat)
+
+            elif "11. Eşikleme İşlemleri" in choice:
+                result = ImageProcessor.double_threshold_manual(mat)
+
+            elif "12. Kenar Bulma" in choice:
+                result = ImageProcessor.sobel_edge_manual(mat)
+
+            elif "13. Gürültü: Salt&Pepper Ekle" in choice:
+                result = ImageProcessor.add_salt_pepper_noise_manual(mat)
+
+            elif "13. Gürültü: Temizleme" in choice:
+                result = ImageProcessor.median_filter_manual(mat)
+
+            elif "14. Görüntü Filtresi (Motion)" in choice:
+                result = ImageProcessor.motion_blur_manual(mat)
+
+            elif "15. Morfolojik" in choice:
+                if "Aşınma" in choice:
+                    result = ImageProcessor.turn_erode(mat)
+                elif "Genişleme" in choice:
+                    result = ImageProcessor.turn_dilate(mat)
+                elif "Açma" in choice:
+                    result = ImageProcessor.turn_opening(mat)
+                elif "Kapama" in choice:
+                    result = ImageProcessor.turn_closing(mat)
 
             # --- DİĞER İŞLEMLER ---
             # Henüz Processor sınıfında olmayanlar için bir uyarı veya pass
